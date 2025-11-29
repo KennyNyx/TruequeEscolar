@@ -8,7 +8,11 @@ class CoordinadorModel {
         $this->db = $dbConnection;
     }
 
-    // --- NUEVO MÉTODO: Obtener todos los coordinadores ---
+    /**
+     * Obtener todos los coordinadores
+     * 
+     *
+     */
     public function obtenerCoordinadores() {
         try {
             $sql = "SELECT * FROM {$this->table}";
@@ -21,8 +25,11 @@ class CoordinadorModel {
         }
     }
 
-    // ... (Mantén tus métodos existentes: registrar, eliminar, emailExists, actualizar)
-
+    
+    /**
+     * Registrar un nuevo coordinador
+     * 
+     */
     public function registrarCoordinador(array $data) {
         try {
             if (empty($data['nombre']) || empty($data['correo']) || empty($data['contrasena'])) {
@@ -47,6 +54,9 @@ class CoordinadorModel {
         }
     }
 
+    /**
+     * Actualizar un coordinador existente
+     */
     public function actualizarCoordinador(array $data): bool {
         try {
             $passwordSQL = "";
@@ -72,6 +82,9 @@ class CoordinadorModel {
         }
     }
 
+    /**
+     * Eliminar un coordinador por ID
+     */
     public function eliminarCoordinador(int $id): bool {
         try {
             $sql = "DELETE FROM {$this->table} WHERE {$this->pk} = :id";
@@ -83,6 +96,9 @@ class CoordinadorModel {
         }
     }
 
+    /**
+     * Verificar si un correo ya existe
+     */
     private function emailExists(string $correo, int $excludeId = null): bool {
         try {
             $sql = "SELECT COUNT(1) FROM {$this->table} WHERE correo = :correo";
@@ -101,6 +117,9 @@ class CoordinadorModel {
         }
     }
 
+    /**
+     * Obtener un coordinador por ID
+     */
     public function obtenerCoordinadorPorId($id) {
         try {
             $sql = "SELECT * FROM coordinadores WHERE id_coordi = :id";
