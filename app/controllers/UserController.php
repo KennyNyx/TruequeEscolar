@@ -193,14 +193,12 @@ class UserController {
 
     /**
      * ACCIÓN: eliminar (Eliminar)
-     * CORRECCIÓN: Redirección incorrecta que causaba ir al login
+     * 
      */
     public function eliminar() {
-        // Verificar que el ID exista
         if (isset($_GET['id'])) {
             $id = filter_var($_GET['id'], FILTER_SANITIZE_NUMBER_INT);
-            
-            // Intentar eliminar el estudiante
+
             if ($this->estudianteModel->eliminarEstudiante($id)) {
                 $message = "Usuario eliminado correctamente.";
                 $type = "success";
@@ -209,12 +207,11 @@ class UserController {
                 $type = "error";
             }
             
-            // ⭐ CORRECCIÓN: Redirección correcta (antes tenía controller= en lugar de action=)
             header("Location: index.php?action=user_consultar&message=" . urlencode($message) . "&type=" . $type);
             exit();
             
         } else {
-            // Si no hay ID, redirigir a la consulta
+
             $message = "No se proporcionó un ID válido.";
             $type = "error";
             header("Location: index.php?action=user_consultar&message=" . urlencode($message) . "&type=" . $type);
