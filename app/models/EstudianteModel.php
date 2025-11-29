@@ -1,14 +1,8 @@
 <?php
-
-/**
- * Clase EstudianteModel
- * Maneja las operaciones de base de datos para los alumnos.
- */
 class EstudianteModel {
     private $db;
 
     public function __construct($dbConnection) {
-        // Recibe la conexión PDO (instancia de la función conectar())
         $this->db = $dbConnection;
     }   
 
@@ -18,14 +12,11 @@ class EstudianteModel {
      * @return bool Devuelve true si el registro fue exitoso, false en caso contrario.
      */
     public function registrarEstudiante($data) {
-        // La columna de contraseña en la tabla 'alumnos' es 'contra', no 'contrasena'
         $sql = "INSERT INTO alumnos (nombre, carrera, cuatrimestre, turno, correo, contra) 
                 VALUES (:nombre, :carrera, :cuatrimestre, :turno, :correo, :contra)";
         
         try {
             $stmt = $this->db->prepare($sql);
-            
-            // Vincular los parámetros de forma segura para prevenir inyección SQL
             $stmt->bindParam(':nombre', $data['nombre']);
             $stmt->bindParam(':carrera', $data['carrera']);
             $stmt->bindParam(':cuatrimestre', $data['cuatrimestre']);
@@ -35,7 +26,6 @@ class EstudianteModel {
 
             return $stmt->execute();
         } catch (PDOException $e) {
-            // En un entorno de producción, registrar este error en un log en lugar de imprimirlo.
             error_log("Error al registrar alumno: " . $e->getMessage());
             return false;
         }
@@ -47,7 +37,6 @@ class EstudianteModel {
      */
     public function login(string $correo, string $contrasena_plain) {
         try {
-            // Asumo que la PK de alumnos es 'ID'. Si no, cámbialo aquí.
             $sql = "SELECT ID AS id, nombre, correo, contra 
                     FROM alumnos 
                     WHERE correo = :correo 
@@ -59,14 +48,11 @@ class EstudianteModel {
 
             $estudiante = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            // Verificar si se encontró el usuario Y si la contraseña coincide
             if ($estudiante && password_verify($contrasena_plain, $estudiante['contra'])) {
                 
-                unset($estudiante['contra']); // No guardar el hash en la sesión
-                return $estudiante; 
+                unset($estudiante['contra']); 
             
             } else {
-                // Usuario no encontrado o contraseña incorrecta
                 return false;
             }
 
@@ -88,14 +74,11 @@ class EstudianteModel {
             $stmt->bindParam(':correo', $correo);
             $stmt->execute();
             
-            // fetch() devuelve false si no encuentra ninguna fila
-            // Si devuelve una fila (es decir, no es false), el correo existe.
             return $stmt->fetch(PDO::FETCH_ASSOC) !== false;
 
         } catch (PDOException $e) {
             error_log("Error al consultar correo: " . $e->getMessage());
-            // En caso de error de BD, es más seguro asumir que existe
-            // para prevenir duplicados, aunque podrías manejarlo de otra forma.
+
             return true; 
         }
     }
@@ -107,15 +90,14 @@ class EstudianteModel {
     public function consultarEstudiantes() {
         try {
             $sql = "SELECT * FROM alumnos ORDER BY nombre ASC";
-            // Usamos query() porque no hay parámetros de entrada
             $stmt = $this->db->query($sql);
             
-            // ¡CORRECCIÓN! Usamos fetchAll() de PDO, no fetch_all() de MySQLi
-            return $stmt->fetchAll(PDO::FETCH_ASSOC); // Devuelve todos los resultados
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC); 
             
         } catch (PDOException $e) {
             error_log("Error al consultar alumnos: " . $e->getMessage());
-            return []; // Devuelve un array vacío en caso de error
+            return []; 
         }
     }
 
@@ -130,7 +112,7 @@ class EstudianteModel {
             $stmt = $this->db->prepare($sql);
             $stmt->bindParam(':id', $id, PDO::PARAM_INT);
             $stmt->execute();
-            return $stmt->fetch(PDO::FETCH_ASSOC); // Devuelve un solo resultado
+            return $stmt->fetch(PDO::FETCH_ASSOC); 
         } catch (PDOException $e) {
             error_log("Error al obtener alumno por ID: " . $e->getMessage());
             return false;
@@ -143,8 +125,6 @@ class EstudianteModel {
      * @return bool Devuelve true si la actualización fue exitosa, false en caso contrario.
      */
     public function actualizarEstudiante($data) {
-        // Opcional: Manejar actualización de contraseña
-        // Si la contraseña viene vacía, no la actualizamos.
         if (!empty($data['contrasena'])) {
             $contrasena_hashed = password_hash($data['contrasena'], PASSWORD_DEFAULT);
             $sql = "UPDATE alumnos SET 
@@ -156,7 +136,7 @@ class EstudianteModel {
                         contra = :contra 
                     WHERE ID = :id";
         } else {
-            // No actualizar la contraseña
+
             $sql = "UPDATE alumnos SET 
                         nombre = :nombre, 
                         carrera = :carrera, 
@@ -169,7 +149,6 @@ class EstudianteModel {
         try {
             $stmt = $this->db->prepare($sql);
             
-            // ¡CORRECCIÓN! Usamos bindParam() de PDO
             $stmt->bindParam(':nombre', $data['nombre']);
             $stmt->bindParam(':carrera', $data['carrera']);
             $stmt->bindParam(':cuatrimestre', $data['cuatrimestre']);
@@ -177,7 +156,6 @@ class EstudianteModel {
             $stmt->bindParam(':correo', $data['correo']);
             $stmt->bindParam(':id', $data['id'], PDO::PARAM_INT);
 
-            // Vincular la contraseña solo si se va a actualizar
             if (!empty($data['contrasena'])) {
                 $stmt->bindParam(':contra', $contrasena_hashed);
             }
